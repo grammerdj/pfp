@@ -19,24 +19,42 @@ CREATE
                                 OUT `p_stat_c` VARCHAR(1),
                                 OUT `p_email` VARCHAR(100))
 	COMMENT "Participant authentication procedure"
-BEGIN
-	 /* Standard Proc Logging Variables */
-     DECLARE beg_ts DATETIME DEFAULT NOW();
-     DECLARE end_ts DATETIME;
-     DECLARE proc_name VARCHAR(20) DEFAULT "p_part_auth";
-     DECLARE params TEXT DEFAULT CONCAT("[", COALESCE(p_username, "NULL"),",",
-     "REDACTED",
-     COALESCE(p_user, "NULL"), 
-     COALESCE(p_stat_c, "NULL"),
+auth: BEGIN
+	/* Standard Proc Logging Variables */
+	DECLARE beg_ts DATETIME DEFAULT NOW();
+	DECLARE proc_name VARCHAR(20) DEFAULT "p_part_auth";
+	DECLARE params TEXT DEFAULT CONCAT("[", COALESCE(p_username, "NULL"),",","REDACTED",COALESCE(p_user, "NULL"),"]");
+	DECLARE msg TEXT DEFAULT "";
+	DECLARE rows_modified INT DEFAULT 0;
+	 
+	/* Custom Variables */
+	DECLARE auth_c VARCHAR(1);
+	 
+	/* Error 1 - Null Params */
+	IF p_username IS NULL OR p_username = "" 
+	OR p_password IS NULL OR p_password = ""
+	OR p_user IS NULL OR p_user = ""
+	THEN 
+		SET msg = "Error 1 - One or more parameters were null";
+        SET p_stat_c = NULL;
+        SET p_email = NULL;
+        CALL p_proc_logging(proc_name, params, msg, rows_modified, "E", p_user, beg_ts, now());
+        LEAVE auth;
+	END IF;
+
+	/* Participant Credential Verification */
+    SELECT @email:=email_otp FROM t_part_auth WHERE username = p_username AND `password` = p_password;
+    SET p_email = @email;
+    IF @email IS NULL
+    THEN
+		SET p_stat_c = "F";
+	ELSE
+		SET p_stat_c = "S";
+	END IF;
+	
+    /* Standard Proc Logging */
+    CALL p_proc_logging (proc_name, params,  msg, rows_modified, "S", p_user, beg_ts, now());
      
-     ;
-     DECLARE msg TEXT;
-     DECLARE rows_modified INT DEFAULT 0;
-     DECLARE stat_c VARCHAR(1);
-     
-     /* Custom Variables */
-     
-     /*Standard Pro*/
 
 END //
 DELIMITER ;

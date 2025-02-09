@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS `t_part_auth` (
   `password` VARCHAR(100) NOT NULL COMMENT "User Set Password",
   `previous_pwds` JSON NOT NULL COMMENT "Date Changed: PWD",
   `email_otp` VARCHAR(100) NOT NULL COMMENT "Email to send One-time passcodes",
-  `otp_temp` INT NULL COMMENT "Quick storage of OTP, cleared after use and every so often",
   `sq_1` VARCHAR(1000) NOT NULL COMMENT "Security Question #1",
   `sq_1_ans` VARCHAR(100) NOT NULL COMMENT "Security Question #1 Answer",
   `sq_2` VARCHAR(1000) NOT NULL COMMENT "Security Question #2",

@@ -24,7 +24,7 @@ CREATE
 	COMMENT "Internal stored procedure logging procedure"
 BEGIN
 	INSERT INTO `t_proc_log`(run_id, proc_name, params, msg, rows_modified, stat_c, usr, beg_ts, end_ts) 
-    VALUES (p_proc_name, p_params, p_msg, p_rows_modified, p_stat_c, p_usr, p_beg_ts, p_end_ts);
+    VALUES (UUID(), p_proc_name, p_params, p_msg, p_rows_modified, p_stat_c, p_usr, p_beg_ts, p_end_ts);
 END //
 DELIMITER ;
 
