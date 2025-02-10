@@ -14,6 +14,7 @@ DROP PROCEDURE IF EXISTS `p_part_sq_validation`;
 DELIMITER //
 CREATE
     PROCEDURE `p_part_sq_validation` (IN `p_email_otp` VARCHAR(100),
+								IN `p_pin` INT,
 								IN `p_sq_1_ans` VARCHAR(100), 
 								IN `p_sq_2_ans` VARCHAR(100),
                                 IN `p_user` VARCHAR(100),
@@ -23,7 +24,7 @@ sq: BEGIN
 	/* Standard Proc Logging Variables */
 	DECLARE beg_ts DATETIME DEFAULT NOW();
 	DECLARE proc_name VARCHAR(20) DEFAULT "p_part_sq_validation";
-	DECLARE params TEXT DEFAULT CONCAT("[",COALESCE(p_email_otp, "NULL"),",",COALESCE(p_sq_1_ans, "NULL"),",",COALESCE(p_sq_2_ans, "NULL"),",",COALESCE(p_user, "NULL"),"]");
+	DECLARE params TEXT DEFAULT CONCAT("[",COALESCE(p_email_otp, "NULL"),",",COALESCE(p_pin, "NULL"),",",COALESCE(p_sq_1_ans, "NULL"),",",COALESCE(p_sq_2_ans, "NULL"),",",COALESCE(p_user, "NULL"),"]");
 	DECLARE msg TEXT DEFAULT "";
 	DECLARE rows_modified INT DEFAULT 0;
 	 
@@ -31,7 +32,9 @@ sq: BEGIN
 	DECLARE auth_c VARCHAR(1);
 	 
 	/* Error 1 - Null Params */
-	IF p_sq_1_ans IS NULL OR p_sq_1_ans = "" 
+	IF p_email_otp IS NULL or p_email_otp = ""
+    OR p_pin IS NULL
+    OR p_sq_1_ans IS NULL OR p_sq_1_ans = "" 
 	OR p_sq_2_ans IS NULL OR p_sq_2_ans = ""
 	OR p_user IS NULL OR p_user = ""
 	THEN 
@@ -42,8 +45,11 @@ sq: BEGIN
 	END IF;
 
 	/* Participant Credential Verification */
-    SELECT @sq_1_ans:=sq_1_ans, @sq_2_ans:=sq_2_ans FROM t_part_auth WHERE email_otp = p_email_otp;
-    IF @sq_1_ans <> p_sq_1_ans OR @sq_2_ans <> p_sq_2_ans
+    SELECT a.sq_1_ans, a.sq_2_ans, r.pin FROM t_part_auth as a
+		INNER JOIN t_part_ref as r ON a.ref_id = r.ref_id 
+        WHERE a.email_otp = p_email_otp
+        INTO @sql_1_ans, @sql_2_ans, @pin;
+    IF @sq_1_ans <> p_sq_1_ans OR @sq_2_ans <> p_sq_2_ans OR @pin <> p_pin
     THEN
 		SET p_stat_c = "F";
 	ELSE

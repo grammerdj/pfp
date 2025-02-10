@@ -43,7 +43,7 @@ auth: BEGIN
 	END IF;
 
 	/* Participant Credential Verification */
-    SELECT @email:=email_otp FROM t_part_auth WHERE username = p_username AND `password` = p_password;
+    SELECT email_otp FROM t_part_auth WHERE username = p_username AND `password` = p_password INTO @email;
     SET p_email = @email;
     IF @email IS NULL
     THEN
