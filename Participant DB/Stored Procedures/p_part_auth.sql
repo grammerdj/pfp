@@ -1,6 +1,6 @@
 -- Author: Daniel Grammer
 -- Date Created: 2/4/2025
--- Date Last Edited: 2/9/2025
+-- Date Last Edited: 2/10/2025
 
 -- ---------------------------- --
 # Script for Creating User Credential Authentication Proc
@@ -17,13 +17,14 @@ CREATE
 								IN `p_password` VARCHAR(100),
                                 IN `p_user` VARCHAR(100),
                                 OUT `p_stat_c` VARCHAR(1),
-                                OUT `p_email` VARCHAR(100))
+                                OUT `p_email` VARCHAR(100),
+                                OUT `p_ref_id` VARCHAR(36))
 	COMMENT "Participant authentication procedure"
 auth: BEGIN
 	/* Standard Proc Logging Variables */
 	DECLARE beg_ts DATETIME DEFAULT NOW();
-	DECLARE proc_name VARCHAR(20) DEFAULT "p_part_auth";
-	DECLARE params TEXT DEFAULT CONCAT("[", COALESCE(p_username, "NULL"),",","REDACTED",",",COALESCE(p_user, "NULL"),"]");
+	DECLARE proc_name VARCHAR(100) DEFAULT "p_part_auth";
+	DECLARE params TEXT DEFAULT CONCAT("[",COALESCE(p_username, "NULL"),",","REDACTED",",",COALESCE(p_user, "NULL"),"]");
 	DECLARE msg TEXT DEFAULT "";
 	DECLARE rows_modified INT DEFAULT 0;
 	 
@@ -43,8 +44,9 @@ auth: BEGIN
 	END IF;
 
 	/* Participant Credential Verification */
-    SELECT email_otp FROM t_part_auth WHERE username = p_username AND `password` = p_password INTO @email;
+    SELECT email_otp, ref_id FROM t_part_auth WHERE username = p_username AND `password` = p_password INTO @email, @ref_id;
     SET p_email = @email;
+    SET p_ref_id = @ref_id;
     IF @email IS NULL
     THEN
 		SET p_stat_c = "F";

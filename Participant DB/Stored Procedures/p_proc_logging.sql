@@ -1,6 +1,6 @@
 -- Author: Daniel Grammer
 -- Date Created: 2/4/2025
--- Date Last Edited: 2/9/2025
+-- Date Last Edited: 2/10/2025
 
 -- ---------------------------- --
 # Script for Creating Stored Procedure Logging Proc
@@ -13,7 +13,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 DROP PROCEDURE IF EXISTS `p_proc_logging`;
 DELIMITER //
 CREATE
-    PROCEDURE `p_proc_logging` (IN `p_proc_name` varchar(36),
+    PROCEDURE `p_proc_logging` (IN `p_proc_name` varchar(100),
 								IN `p_params` text,
                                 IN `p_msg` text,
 								IN `p_rows_modified` int,
