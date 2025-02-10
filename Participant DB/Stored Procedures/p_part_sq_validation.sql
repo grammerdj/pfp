@@ -1,29 +1,29 @@
 -- Author: Daniel Grammer
--- Date Created: 2/4/2025
+-- Date Created: 2/9/2025
 -- Date Last Edited: 2/9/2025
 
 -- ---------------------------- --
-# Script for Creating User Credential Authentication Proc
+# Script for Creating User Credential Security Question Validation Proc
 -- ---------------------------- --
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
-DROP PROCEDURE IF EXISTS `p_part_auth`;
+DROP PROCEDURE IF EXISTS `p_part_sq_validation`;
 DELIMITER //
 CREATE
-    PROCEDURE `p_part_auth` (IN `p_username` VARCHAR(20), 
-								IN `p_password` VARCHAR(100),
+    PROCEDURE `p_part_sq_validation` (IN `p_email_otp` VARCHAR(100),
+								IN `p_sq_1_ans` VARCHAR(100), 
+								IN `p_sq_2_ans` VARCHAR(100),
                                 IN `p_user` VARCHAR(100),
-                                OUT `p_stat_c` VARCHAR(1),
-                                OUT `p_email` VARCHAR(100))
-	COMMENT "Participant authentication procedure"
-auth: BEGIN
+                                OUT `p_stat_c` VARCHAR(1))
+	COMMENT "Participant security question answer validation"
+sq: BEGIN
 	/* Standard Proc Logging Variables */
 	DECLARE beg_ts DATETIME DEFAULT NOW();
-	DECLARE proc_name VARCHAR(20) DEFAULT "p_part_auth";
-	DECLARE params TEXT DEFAULT CONCAT("[", COALESCE(p_username, "NULL"),",","REDACTED",",",COALESCE(p_user, "NULL"),"]");
+	DECLARE proc_name VARCHAR(20) DEFAULT "p_part_sq_validation";
+	DECLARE params TEXT DEFAULT CONCAT("[",COALESCE(p_email_otp, "NULL"),",",COALESCE(p_sq_1_ans, "NULL"),",",COALESCE(p_sq_2_ans, "NULL"),",",COALESCE(p_user, "NULL"),"]");
 	DECLARE msg TEXT DEFAULT "";
 	DECLARE rows_modified INT DEFAULT 0;
 	 
@@ -31,21 +31,19 @@ auth: BEGIN
 	DECLARE auth_c VARCHAR(1);
 	 
 	/* Error 1 - Null Params */
-	IF p_username IS NULL OR p_username = "" 
-	OR p_password IS NULL OR p_password = ""
+	IF p_sq_1_ans IS NULL OR p_sq_1_ans = "" 
+	OR p_sq_2_ans IS NULL OR p_sq_2_ans = ""
 	OR p_user IS NULL OR p_user = ""
 	THEN 
 		SET msg = "Error 1 - One or more parameters were null";
         SET p_stat_c = NULL;
-        SET p_email = NULL;
         CALL p_proc_logging(proc_name, params, msg, rows_modified, "E", p_user, beg_ts, now());
-        LEAVE auth;
+        LEAVE sq;
 	END IF;
 
 	/* Participant Credential Verification */
-    SELECT @email:=email_otp FROM t_part_auth WHERE username = p_username AND `password` = p_password;
-    SET p_email = @email;
-    IF @email IS NULL
+    SELECT @sq_1_ans:=sq_1_ans, @sq_2_ans:=sq_2_ans FROM t_part_auth WHERE email_otp = p_email_otp;
+    IF @sq_1_ans <> p_sq_1_ans OR @sq_2_ans <> p_sq_2_ans
     THEN
 		SET p_stat_c = "F";
 	ELSE
@@ -62,6 +60,5 @@ DELIMITER ;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
 
 

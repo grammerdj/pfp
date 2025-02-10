@@ -1,6 +1,6 @@
 -- Author: Daniel Grammer
 -- Date Created: 1/24/2025
--- Date Last Edited: 1/24/2025
+-- Date Last Edited: 2/9/2025
 
 -- ---------------------------- --
 # Script for Creating Authentication Table
@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS `t_part_auth` (
   `ins_ts` DATETIME NULL COMMENT "Insert Timestamp",
   PRIMARY KEY (`ref_id`),
   FOREIGN KEY (`ref_id`) REFERENCES t_part_ref(`ref_id`),
-  UNIQUE INDEX `ref_id_UNIQUE` (`ref_id` ASC) VISIBLE)
+  UNIQUE INDEX `ref_id_UNIQUE` (`ref_id` ASC) VISIBLE,
+  UNIQUE INDEX `email_otp_UNIQUE` (`email_otp` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 SET SQL_MODE=@OLD_SQL_MODE;
